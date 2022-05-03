@@ -408,6 +408,13 @@ class Brinson_analysis :
         index_perf = list(np.array(index_perf)/index_perf[0])
         x_data = (self.pnl[self.pnl.day >= self.BEGIN][self.pnl.day <= self.END].day).values
         fig=plt.figure(figsize=(13, 9))
+        
+        # 有些fund在BEGIN之后很久才开始运行，这里将fund运行第一天的相对价格和基准对齐，便于之后日期的比较
+        date_ = pd.to_datetime(x_data)[0]  # 获取基金运行的第一天
+        d_list = np.array(pd.to_datetime(self.basic_index_prices.index))  # 基准指数的运行时间array
+        index_loc = np.where(d_list==d_list[d_list>date_][0])[0][0]  # 基金开始运行后的第一个交易日对应基准指数运行时间的index
+        fund_perf = np.array(fund_perf) * index_perf[index_loc]  # 调整基金相对价格
+        
         # 让plt可以显示中文
         plt.rcParams['font.sans-serif']=['SimHei']
         plt.rcParams['axes.unicode_minus'] = False
@@ -504,7 +511,7 @@ class Brinson_analysis :
 if __name__ == "__main__":
     # 设置基本参数
     BASIC_INDEX = "000300.XSHG"   # 采用沪深300作为基准指数
-    FUND_NAME = "000011"
+    FUND_NAME = "003567"
     BEGIN = '2014-04-01'
     END = '2022-01-01'
     DATE = "2020-01-01"  # 因为对于申万一级行业指数曾经发生过改变，故需取最近的表格，这里选用DATE时的行业分类，后续可能会改为根据日期调整
@@ -513,17 +520,11 @@ if __name__ == "__main__":
     model.multi_periods_brison()
     fig_perform_compar, fig_fund_perform, brinson_period, brinson_whole, fig_return_decompose, industries_panel, fig_diff = model.result_display()
 
-    brinson_period.to_csv('result/' + model.FUND_NAME + '_历年brinson单期分析.csv',encoding="utf_8_sig")
-    brinson_whole.to_csv('result/' + model.FUND_NAME + '_2014年至今总体brinson分析.csv',encoding="utf_8_sig")
-    industries_panel.to_csv('result/' + model.FUND_NAME + '_基金基准的配置差.csv',encoding="utf_8_sig")
-    fig_perform_compar.savefig('result/' + model.FUND_NAME + '_基金基准业绩比较.png')        
-    fig_fund_perform.savefig('result/' + model.FUND_NAME + '_历年基金业绩.png')        
-    fig_return_decompose.savefig('result/' + model.FUND_NAME + '_Brinson收益分解.png')       
-    fig_diff.savefig('result/' + model.FUND_NAME + '_基金基准的配置差.png')
-
-
-# In[ ]:
-
-
-
+#     brinson_period.to_csv('result/' + model.FUND_NAME + '_历年brinson单期分析.csv',encoding="utf_8_sig")
+#     brinson_whole.to_csv('result/' + model.FUND_NAME + '_2014年至今总体brinson分析.csv',encoding="utf_8_sig")
+#     industries_panel.to_csv('result/' + model.FUND_NAME + '_基金基准的配置差.csv',encoding="utf_8_sig")
+#     fig_perform_compar.savefig('result/' + model.FUND_NAME + '_基金基准业绩比较.png')        
+#     fig_fund_perform.savefig('result/' + model.FUND_NAME + '_历年基金业绩.png')        
+#     fig_return_decompose.savefig('result/' + model.FUND_NAME + '_Brinson收益分解.png')       
+#     fig_diff.savefig('result/' + model.FUND_NAME + '_基金基准的配置差.png')
 
